@@ -9,8 +9,17 @@ class UserDatabaseHelper {
   static const String _dbName = "Usermanagement.db";
 
   static Future<Database> _getDB() async {
+    String databasesPath = await getDatabasesPath();
+    String dbPath = join(databasesPath, _dbName);
+
+    // bool isDbExists = await databaseExists(dbPath);
+    //
+    // // if (isDbExists) {
+    // //   await deleteDatabase(dbPath);
+    // // }
+
     return openDatabase(
-      join(await getDatabasesPath(), _dbName),
+      dbPath,
       onCreate: (db, version) async {
         await db.execute('''
         CREATE TABLE IF NOT EXISTS user(
@@ -18,6 +27,17 @@ class UserDatabaseHelper {
           firstname TEXT,
           lastname TEXT,
           age INTEGER
+        )
+      ''');
+
+        await db.execute('''
+        CREATE TABLE IF NOT EXISTS notification(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
+          username TEXT,
+          message TEXT,
+          hour INTEGER,
+          minute INTEGER
         )
       ''');
 
@@ -73,8 +93,39 @@ class UserDatabaseHelper {
     return List.generate(maps.length, (index) => User.fromJson(maps[index]));
   }
 
-   static Future<void> closeDatabase() async {
+
+
+
+
+
+
+//==============================================Notification Table===========================================================
+
+
+
+
+
+  static Future<int> createNotification(MyNotification notification) async {
     final db = await _getDB();
-    await db.close();
+    return await db.insert("notification", notification.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
+
+  static Future<List<MyNotification>?> getAllNotifications() async {
+    final db = await _getDB();
+
+    final List<Map<String, dynamic>> maps = await db.query("notification");
+
+    if (maps.isEmpty) {
+      return null;
+    }
+
+    return List.generate(
+        maps.length, (index) => MyNotification.fromJson(maps[index]));
+  }
+
+
+
+
+
 }
