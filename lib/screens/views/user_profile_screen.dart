@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:usermanagement/components/form_component.dart';
 import 'package:usermanagement/models/notification.dart';
 import 'package:usermanagement/models/user.dart';
 import 'package:usermanagement/screens/views/edit_user_screen.dart';
 
-import '../../components/popup_component.dart';
-import '../../services/db_notification_helper.dart';
-import '../../services/db_user_helper.dart';
+import '../../services/db_helper.dart';
 import 'create_user_screen.dart';
 
 class UserProfileScreen extends StatelessWidget {
@@ -21,6 +20,21 @@ class UserProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Container(
+          height: 10,
+          width: 10,
+          margin: EdgeInsets.all(10),
+          child: IconButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.west_outlined,color: Colors.black,size: 15,)
+          ),
+          decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey),
+              color: Color.fromARGB(255, 255, 255, 255)),
+        ),
         backgroundColor: Color.fromARGB(200, 2, 0, 0),
         title: const Text("User profile"),
         centerTitle: true,
@@ -146,10 +160,10 @@ class UserProfileScreen extends StatelessWidget {
                                                             gravity: ToastGravity.BOTTOM,
                                                             backgroundColor: Colors.greenAccent,
                                                           );
-                                                          print(user_id);
-                                                          MyNotification notification = MyNotification(username: username, message: "removed", hour: DateTime.now().hour, minute: DateTime.now().minute);
+
+                                                          MyNotification notification = MyNotification(message: "${user.lastname} removed", hour: DateTime.now().hour, minute: DateTime.now().minute);
                                                           try{
-                                                            await NotificationDatabaseHelper.createNotification(notification);
+                                                            await UserDatabaseHelper.createNotification(notification);
                                                           }catch(e){
                                                             print("Une exception s'est produite : $e");
                                                           }

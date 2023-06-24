@@ -10,6 +10,7 @@ Widget build(BuildContext context){
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
+        fontFamily: 'JetBrainsMono'
       ),
 
       home: const RootScreen(),

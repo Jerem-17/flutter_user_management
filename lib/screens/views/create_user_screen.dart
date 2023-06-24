@@ -1,18 +1,29 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:usermanagement/screens/root_screen.dart';
-import 'package:usermanagement/services/db_user_helper.dart';
+import 'package:usermanagement/services/ChecKConnection.dart';
+import 'package:usermanagement/services/db_helper.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../components/form_component.dart';
+import '../../models/notification.dart';
 import '../../models/user.dart';
+import '../../services/retrofit_service.dart';
 
 class CreateUserScreen extends StatelessWidget {
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   final formkey = GlobalKey<FormState>();
   User? user;
 
+  final FocusNode _firstNameFocusNode = FocusNode();
+  final FocusNode _lastNameFocusNode = FocusNode();
+  final FocusNode _agefocusNode = FocusNode();
+
   final  firstnameController = TextEditingController();
   final lastnameController = TextEditingController();
   final ageController = TextEditingController();
+
+  final isApiReachable = IsApiReachable.checkIfApiReachable();
 
   void _showSnackBar(BuildContext context){
     ScaffoldMessenger.of(context).showSnackBar(
@@ -26,9 +37,26 @@ class CreateUserScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+
+
     return Scaffold(
       key: _scaffoldMessengerKey,
       appBar: AppBar(
+        leading: Container(
+          height: 10,
+          width: 10,
+          margin: EdgeInsets.all(10),
+          child: IconButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.west_outlined,color: Colors.black,size: 15,)
+          ),
+          decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey),
+              color: Color.fromARGB(255, 255, 255, 255)),
+        ),
         backgroundColor: Color.fromARGB(200,2,0,0),
         title: const Text("Create profile"),
         centerTitle: true,
@@ -39,10 +67,15 @@ class CreateUserScreen extends StatelessWidget {
             height: 20.0,
           ),
           Container(
-            height: 150.0,
+            height: 128,
+            width: 128,
+            child: Container(
+              width:54,height: 51,
+              child: Image.asset('icons/userc.png',color: Colors.black,),
+            ),
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: Color.fromARGB(200, 200, 200, 200),
+              color: Color.fromARGB(255, 218, 220, 224),
             ),
           ),
           const SizedBox(
@@ -55,18 +88,30 @@ class CreateUserScreen extends StatelessWidget {
               children: [
                 const Padding(
                     padding: EdgeInsets.only(left: 20.0),
-                    child: Text(
-                      "First name",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child:Row(
+                      children: [
+                        Text(
+                          "First name",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 15.0,),
+                        Icon(Icons.circle, color: Colors.red, size: 5,)
+                      ],
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20),
                   child: TextFormField(
                    controller: firstnameController,
                     decoration: const InputDecoration(
-                        hintText: "prenom",
+                        hintText: "Prenom",
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black,width: 2),
+                        ),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)))),
+                            borderRadius: BorderRadius.all(Radius.circular(10.0))),
+
+                    ),
+                    focusNode: _firstNameFocusNode,
                     validator: (value){
                       if(value!.isEmpty || !RegExp(r'^[a-zA-Z]+$').hasMatch(value!)){
                         return "Enter correct firstname";
@@ -81,18 +126,28 @@ class CreateUserScreen extends StatelessWidget {
                 ),
                 const Padding(
                     padding: EdgeInsets.only(left: 20.0),
-                    child: Text(
-                      "Last name",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child:Row(
+                      children: [
+                        Text(
+                          "Last name",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 15.0,),
+                        Icon(Icons.circle, color: Colors.red, size: 5,)
+                      ],
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20),
                   child: TextFormField(
                     controller: lastnameController,
                     decoration: const InputDecoration(
-                        hintText: "nom",
+                        hintText: "Nom",
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black,width: 2),
+                        ),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10.0)))),
+                    focusNode: _lastNameFocusNode,
                     validator: (value){
                       if(value!.isEmpty || !RegExp(r'^[a-zA-Z]+$').hasMatch(value!)){
                         return "Enter correct lastname";
@@ -107,18 +162,28 @@ class CreateUserScreen extends StatelessWidget {
                 ),
                 const Padding(
                     padding: EdgeInsets.only(left: 20.0),
-                    child: Text(
-                      "Age",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child:Row(
+                      children: [
+                        Text(
+                          "Age",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     )),
                 Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20),
                   child: TextFormField(
                     controller: ageController,
                     decoration: const InputDecoration(
-                        hintText: "age",
+                        hintText: "Age",
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black,width: 2),
+                        ),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)))),
+                            borderRadius: BorderRadius.all(Radius.circular(10.0))
+                        )
+                    ),
+                    focusNode: _agefocusNode,
                     validator: (value){
                       if(value!.isEmpty || !RegExp(r'^(?:[0-9]|[1-9][0-9]|1[0-4][0-9]|150)$').hasMatch(value!)){
                         return "Enter correct age";
@@ -150,26 +215,47 @@ class CreateUserScreen extends StatelessWidget {
                             return;
                           }
 
-                          final User model = User(id: user?.id, firstname: firstname, lastname: lastname, age: int.parse(age));
-
+                          final User model = User(id: null, firstname: firstname, lastname: lastname, age: int.parse(age));
+                          MyNotification notification = MyNotification(message: "${lastname} created", hour: DateTime.now().hour, minute: DateTime.now().minute);
                           if(user == null){
                             try{
-                              int result =await UserDatabaseHelper.createUser(model);
-                              if(result != null || result > 0){
-                                await Fluttertoast.showToast(
-                                  msg: "Utilisateur cree",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  backgroundColor: Colors.greenAccent,
-                                );
+                              if(await isApiReachable){
+                                //for api
+                                await UserDatabaseHelper.createUser(model);
+                                ApiService(Dio(BaseOptions(contentType: "application/json"))).createUser(model);
+                                try{
+                                  await UserDatabaseHelper.createNotification(notification);
+                                }catch(e){
+                                  print("Une exception s'est produite : $e");
+                                }
                                 goToUsersList(context);
                               }else{
-                               await Fluttertoast.showToast(
-                                  msg: "Requete echoue",
-                                  toastLength: Toast.LENGTH_SHORT,
-                                  gravity: ToastGravity.BOTTOM,
-                                  backgroundColor: Colors.redAccent,
-                                );
+                                //for local
+                                int result =await UserDatabaseHelper.createUser(model);
+                                if(result != null || result > 0){
+                                  await Fluttertoast.showToast(
+                                    msg: "Utilisateur cree",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    backgroundColor: Colors.greenAccent,
+                                  );
+
+                                  try{
+                                    await UserDatabaseHelper.createNotification(notification);
+                                  }catch(e){
+                                    print("Une exception s'est produite : $e");
+                                  }
+
+                                  goToUsersList(context);
+                                }else{
+                                  await Fluttertoast.showToast(
+                                    msg: "Requete echoue",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    backgroundColor: Colors.redAccent,
+                                  );
+                                }
+
                               }
 
                             }catch(e){

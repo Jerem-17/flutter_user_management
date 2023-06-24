@@ -12,11 +12,11 @@ class UserDatabaseHelper {
     String databasesPath = await getDatabasesPath();
     String dbPath = join(databasesPath, _dbName);
 
-    // bool isDbExists = await databaseExists(dbPath);
-    //
-    // // if (isDbExists) {
-    // //   await deleteDatabase(dbPath);
-    // // }
+    /*bool isDbExists = await databaseExists(dbPath);
+
+    if (isDbExists) {
+      await deleteDatabase(dbPath);
+    }*/
 
     return openDatabase(
       dbPath,
@@ -26,18 +26,18 @@ class UserDatabaseHelper {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           firstname TEXT,
           lastname TEXT,
-          age INTEGER
+          age INTEGER,
+          createdAt DATE
         )
       ''');
 
         await db.execute('''
         CREATE TABLE IF NOT EXISTS notification(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER,
-          username TEXT,
           message TEXT,
           hour INTEGER,
-          minute INTEGER
+          minute INTEGER,
+          createdAt DATE
         )
       ''');
 
@@ -84,7 +84,7 @@ class UserDatabaseHelper {
   static Future<List<User>?> getAllUsers() async {
     final db = await _getDB();
 
-    final List<Map<String, dynamic>> maps = await db.query("user");
+    final List<Map<String, dynamic>> maps = await db.query("user" ,orderBy: "id DESC");
 
     if (maps.isEmpty) {
       return null;
@@ -107,21 +107,21 @@ class UserDatabaseHelper {
 
   static Future<int> createNotification(MyNotification notification) async {
     final db = await _getDB();
-    return await db.insert("notification", notification.toJson(),
+    return await db.insert("notification", notification.toJsons(),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   static Future<List<MyNotification>?> getAllNotifications() async {
     final db = await _getDB();
 
-    final List<Map<String, dynamic>> maps = await db.query("notification");
+    final List<Map<String, dynamic>> maps = await db.query("notification" ,orderBy: "id DESC");
 
     if (maps.isEmpty) {
       return null;
     }
 
     return List.generate(
-        maps.length, (index) => MyNotification.fromJson(maps[index]));
+        maps.length, (index) => MyNotification.fromJsons(maps[index]));
   }
 
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:usermanagement/u_m_icons_icons.dart';
 
 import 'views/notifications_screen.dart';
 import 'views/user_list_screen.dart';
@@ -37,11 +39,11 @@ class _RootScreenState extends State<RootScreen> {
           showSelectedLabels: false,
           elevation: 0,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "home"),
+            BottomNavigationBarItem(icon: Icon(UMIcons.users_1), label: "users"),
             BottomNavigationBarItem(icon: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.notifications,),
+                Icon(UMIcons.notification,),
                 //showicon(isVisited)
                 Visibility(
                     child: Padding(

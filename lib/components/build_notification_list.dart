@@ -10,13 +10,12 @@ class NotificationListItemWidget extends StatefulWidget {
 
 class _NotificationListItemWidgetState
     extends State<NotificationListItemWidget> {
-
+  get user_id => null;
 
   @override
   Widget build(BuildContext context) {
     List<MyNotification> notifications = [
       MyNotification(
-          username: 'test',
           message: "removed",
           hour: 2,
           minute: 12)
@@ -39,7 +38,7 @@ class _NotificationListItemWidgetState
                 ),
                 Expanded(
                   child: Text(
-                    "${notifications[index].username} ${notifications[index].message}",
+                    "${notifications[index].message}",
                   ),
                 ),
                 Text(

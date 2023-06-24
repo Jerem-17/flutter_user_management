@@ -1,11 +1,15 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:usermanagement/components/popup_component.dart';
+import 'package:get/get.dart';
 import 'package:usermanagement/models/user.dart';
 import 'package:usermanagement/screens/views/create_user_screen.dart';
 
 import '../../components/form_component.dart';
-import '../../services/db_user_helper.dart';
+import '../../models/notification.dart';
+import '../../services/ChecKConnection.dart';
+import '../../services/db_helper.dart';
+import '../../services/retrofit_service.dart';
 
 class EditUserScreen extends StatelessWidget {
   final User user ;
@@ -14,6 +18,8 @@ class EditUserScreen extends StatelessWidget {
   TextEditingController firstnameController = TextEditingController();
   TextEditingController lastnameController = TextEditingController();
   TextEditingController ageController = TextEditingController();
+
+  final isApiReachable = IsApiReachable.checkIfApiReachable();
 
   EditUserScreen(this.user,{super.key})
    : firstnameController = TextEditingController(text: user.firstname),
@@ -35,6 +41,21 @@ class EditUserScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Container(
+          height: 10,
+          width: 10,
+          margin: EdgeInsets.all(10),
+          child: IconButton(
+              onPressed: (){
+                Navigator.of(context).pop();
+              },
+              icon: Icon(Icons.west_outlined,color: Colors.black,size: 15,)
+          ),
+          decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey),
+              color: Color.fromARGB(255, 255, 255, 255)),
+        ),
         backgroundColor: Color.fromARGB(200,2,0,0),
         title: const Text("Edit profile"),
         centerTitle: true,
@@ -200,26 +221,46 @@ class EditUserScreen extends StatelessWidget {
                                                             }
 
                                                             final User model = User(id: user?.id, firstname: firstname, lastname: lastname, age: int.parse(age));
+                                                            MyNotification notification = MyNotification(message: "${user.lastname} updated", hour: DateTime.now().hour, minute: DateTime.now().minute);
+
                                                             if(user != null){
+                                                              int? user_id = await UserDatabaseHelper.getUserIdByUsername(user.lastname);
                                                               try{
-                                                                int result =await UserDatabaseHelper.updateUser(model);
-                                                                if(result != null || result > 0){
-                                                                  await Fluttertoast.showToast(
-                                                                    msg: "Utilisateur mis a jour",
-                                                                    toastLength: Toast.LENGTH_SHORT,
-                                                                    gravity: ToastGravity.BOTTOM,
-                                                                    backgroundColor: Colors.greenAccent,
-                                                                  );
+                                                                if(await isApiReachable){
+                                                                  var id = ApiService(Dio(BaseOptions(contentType: "application/json"))).getUserId(model.firstname, model.lastname, model.age);
+
+                                                                  ApiService(Dio(BaseOptions(contentType: "application/json"))).updateUser(id, model);
+
                                                                   CreateUserScreen.goToUsersList(context);
                                                                 }else{
-                                                                  await Fluttertoast.showToast(
-                                                                    msg: "Requete echoue",
-                                                                    toastLength: Toast.LENGTH_SHORT,
-                                                                    gravity: ToastGravity.BOTTOM,
-                                                                    backgroundColor: Colors.redAccent,
-                                                                  );
-                                                                }
 
+                                                                  int result =await UserDatabaseHelper.updateUser(model);
+                                                                  if(result != null || result > 0){
+                                                                    await Fluttertoast.showToast(
+                                                                      msg: "Utilisateur mis a jour",
+                                                                      toastLength: Toast.LENGTH_SHORT,
+                                                                      gravity: ToastGravity.BOTTOM,
+                                                                      backgroundColor: Colors.greenAccent,
+                                                                    );
+
+
+                                                                    try{
+                                                                      await UserDatabaseHelper.createNotification(notification);
+                                                                    }catch(e){
+                                                                      print("Une exception s'est produite : $e");
+                                                                    }
+
+                                                                    CreateUserScreen.goToUsersList(context);
+                                                                  }else{
+                                                                    await Fluttertoast.showToast(
+                                                                      msg: "Requete echoue",
+                                                                      toastLength: Toast.LENGTH_SHORT,
+                                                                      gravity: ToastGravity.BOTTOM,
+                                                                      backgroundColor: Colors.redAccent,
+                                                                    );
+                                                                  }
+
+                                                                }
                                                               }catch(e){
                                                                 print("Une exception s'est produite : $e");
                                                               }
